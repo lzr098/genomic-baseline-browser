@@ -1,0 +1,248 @@
+{
+  "reference_genome": "GRCh38",
+  "gnomad": "v4.1",
+  "gnomad_callset": "exomes",
+  "clinvar": "GRCh38 VCF",
+  "chromosomes": [
+    {
+      "chrom": "chr1",
+      "chrom_length": 248956422,
+      "variant_allele_count": 17671166,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr1_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr1_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr1_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr10",
+      "chrom_length": 133797422,
+      "variant_allele_count": 7210142,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr10_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr10_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr10_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr11",
+      "chrom_length": 135086622,
+      "variant_allele_count": 10526962,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr11_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr11_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr11_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr12",
+      "chrom_length": 133275309,
+      "variant_allele_count": 9855795,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr12_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr12_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr12_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr13",
+      "chrom_length": 114364328,
+      "variant_allele_count": 3549140,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr13_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr13_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr13_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr14",
+      "chrom_length": 107043718,
+      "variant_allele_count": 6268134,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr14_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr14_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr14_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr15",
+      "chrom_length": 101991189,
+      "variant_allele_count": 7010578,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr15_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr15_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr15_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr16",
+      "chrom_length": 90338345,
+      "variant_allele_count": 8785928,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr16_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr16_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr16_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr17",
+      "chrom_length": 83257441,
+      "variant_allele_count": 10744750,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr17_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr17_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr17_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr18",
+      "chrom_length": 80373285,
+      "variant_allele_count": 3246732,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr18_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr18_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr18_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr19",
+      "chrom_length": 58617616,
+      "variant_allele_count": 11706291,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr19_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr19_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr19_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr2",
+      "chrom_length": 242193529,
+      "variant_allele_count": 12963790,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr2_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr2_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr2_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr20",
+      "chrom_length": 64444167,
+      "variant_allele_count": 4616729,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr20_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr20_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr20_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr21",
+      "chrom_length": 46709983,
+      "variant_allele_count": 2188842,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr21_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr21_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr21_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr22",
+      "chrom_length": 50818468,
+      "variant_allele_count": 4845199,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr22_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr22_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr22_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr3",
+      "chrom_length": 198295559,
+      "variant_allele_count": 10208076,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr3_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr3_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr3_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr4",
+      "chrom_length": 190214555,
+      "variant_allele_count": 7252480,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr4_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr4_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr4_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr5",
+      "chrom_length": 181538259,
+      "variant_allele_count": 8156768,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr5_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr5_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr5_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr6",
+      "chrom_length": 170805979,
+      "variant_allele_count": 8573431,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr6_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr6_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr6_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr7",
+      "chrom_length": 159345973,
+      "variant_allele_count": 9233607,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr7_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr7_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr7_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr8",
+      "chrom_length": 145138636,
+      "variant_allele_count": 6800081,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr8_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr8_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr8_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chr9",
+      "chrom_length": 138394717,
+      "variant_allele_count": 7476742,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chr9_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr9_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr9_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chrX",
+      "chrom_length": 156040895,
+      "variant_allele_count": 4685140,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chrX_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chrX_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chrX_bins_10kb.parquet"
+      }
+    },
+    {
+      "chrom": "chrY",
+      "chrom_length": 57227415,
+      "variant_allele_count": 140758,
+      "output_paths": {
+        "1mb": "bins/by_chrom/chrY_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chrY_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chrY_bins_10kb.parquet"
+      }
+    }
+  ]
+}

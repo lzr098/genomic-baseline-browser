@@ -1,0 +1,4 @@
+# Pipeline + viewport (steps 01–07)
+pandas>=2.0
+pyarrow>=14.0
+pysam>=0.22

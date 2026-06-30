@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exome Baseline Browser — GRCh38</title>
+  <link rel="stylesheet" href="/static/css/browser.css?v=14" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <strong>Exome Baseline Browser</strong>
+      <span class="assembly">GRCh38 · gnomAD v4.1 exomes · ClinVar · sample HG002</span>
+    </div>
+    <div class="chrom-row" id="chrom-buttons" aria-label="Chromosome selector"></div>
+    <div class="nav-row">
+      <label class="location-label" for="location-input">Location</label>
+      <input id="location-input" type="text" spellcheck="false" placeholder="chr21:25,000,000-26,000,000" />
+      <button id="location-go" type="button">Go</button>
+      <div class="zoom-controls">
+        <button id="zoom-out" type="button" title="Zoom out">−</button>
+        <span id="window-bp" class="window-bp">—</span>
+        <button id="zoom-in" type="button" title="Zoom in">+</button>
+      </div>
+      <span id="status" class="status" aria-live="polite"></span>
+    </div>
+  </header>
+
+  <main id="browser-root" class="browser-root">
+    <div class="loading">Loading…</div>
+  </main>
+
+  <script type="module" src="/static/js/app.js?v=12"></script>
+</body>
+</html>

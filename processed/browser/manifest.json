@@ -1,0 +1,318 @@
+{
+  "assembly": "GRCh38",
+  "gnomad": "v4.1",
+  "gnomad_callset": "exomes",
+  "clinvar": "GRCh38 VCF",
+  "gff3": "/Users/zhaorongli/WorkBuddy/Claw/exome_baseline_browser_v2/raw/Homo_sapiens.GRCh38.115.gff3",
+  "generated_at": "2026-06-30T13:28:06.143714+00:00",
+  "default_chrom": "chr21",
+  "click_jump_bp": 100000,
+  "zoom_steps_bp": [
+    10000000,
+    1000000,
+    100000,
+    10000
+  ],
+  "track_order": [
+    "genes",
+    "gnomad",
+    "clinvar",
+    "sample"
+  ],
+  "tracks": {
+    "genes": {
+      "label": "Genes",
+      "sublabel": "Ensembl 115 GFF3 · exons",
+      "type": "gene"
+    },
+    "gnomad": {
+      "label": "gnomAD_exome",
+      "sublabel": "v4.1 exomes",
+      "type": "histogram",
+      "value_col": "variant_count",
+      "fill": "#0C5EC4"
+    },
+    "clinvar": {
+      "label": "ClinVar",
+      "sublabel": "pathogenic · VUS/conflicting · benign",
+      "type": "clinvar_stacked"
+    },
+    "sample": {
+      "label": "{sample_id}",
+      "sublabel": "known · novel stacked",
+      "type": "sample_stacked"
+    }
+  },
+  "default_sample": "",
+  "samples": [],
+  "chromosomes": [
+    {
+      "chrom": "chr1",
+      "length": 248956422,
+      "variant_count": 17671166,
+      "bins": {
+        "1mb": "bins/by_chrom/chr1_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr1_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr1_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr1_genes.parquet"
+    },
+    {
+      "chrom": "chr2",
+      "length": 242193529,
+      "variant_count": 12963790,
+      "bins": {
+        "1mb": "bins/by_chrom/chr2_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr2_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr2_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr2_genes.parquet"
+    },
+    {
+      "chrom": "chr3",
+      "length": 198295559,
+      "variant_count": 10208076,
+      "bins": {
+        "1mb": "bins/by_chrom/chr3_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr3_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr3_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr3_genes.parquet"
+    },
+    {
+      "chrom": "chr4",
+      "length": 190214555,
+      "variant_count": 7252480,
+      "bins": {
+        "1mb": "bins/by_chrom/chr4_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr4_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr4_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr4_genes.parquet"
+    },
+    {
+      "chrom": "chr5",
+      "length": 181538259,
+      "variant_count": 8156768,
+      "bins": {
+        "1mb": "bins/by_chrom/chr5_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr5_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr5_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr5_genes.parquet"
+    },
+    {
+      "chrom": "chr6",
+      "length": 170805979,
+      "variant_count": 8573431,
+      "bins": {
+        "1mb": "bins/by_chrom/chr6_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr6_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr6_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr6_genes.parquet"
+    },
+    {
+      "chrom": "chr7",
+      "length": 159345973,
+      "variant_count": 9233607,
+      "bins": {
+        "1mb": "bins/by_chrom/chr7_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr7_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr7_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr7_genes.parquet"
+    },
+    {
+      "chrom": "chr8",
+      "length": 145138636,
+      "variant_count": 6800081,
+      "bins": {
+        "1mb": "bins/by_chrom/chr8_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr8_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr8_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr8_genes.parquet"
+    },
+    {
+      "chrom": "chr9",
+      "length": 138394717,
+      "variant_count": 7476742,
+      "bins": {
+        "1mb": "bins/by_chrom/chr9_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr9_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr9_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr9_genes.parquet"
+    },
+    {
+      "chrom": "chr10",
+      "length": 133797422,
+      "variant_count": 7210142,
+      "bins": {
+        "1mb": "bins/by_chrom/chr10_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr10_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr10_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr10_genes.parquet"
+    },
+    {
+      "chrom": "chr11",
+      "length": 135086622,
+      "variant_count": 10526962,
+      "bins": {
+        "1mb": "bins/by_chrom/chr11_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr11_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr11_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr11_genes.parquet"
+    },
+    {
+      "chrom": "chr12",
+      "length": 133275309,
+      "variant_count": 9855795,
+      "bins": {
+        "1mb": "bins/by_chrom/chr12_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr12_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr12_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr12_genes.parquet"
+    },
+    {
+      "chrom": "chr13",
+      "length": 114364328,
+      "variant_count": 3549140,
+      "bins": {
+        "1mb": "bins/by_chrom/chr13_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr13_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr13_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr13_genes.parquet"
+    },
+    {
+      "chrom": "chr14",
+      "length": 107043718,
+      "variant_count": 6268134,
+      "bins": {
+        "1mb": "bins/by_chrom/chr14_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr14_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr14_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr14_genes.parquet"
+    },
+    {
+      "chrom": "chr15",
+      "length": 101991189,
+      "variant_count": 7010578,
+      "bins": {
+        "1mb": "bins/by_chrom/chr15_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr15_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr15_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr15_genes.parquet"
+    },
+    {
+      "chrom": "chr16",
+      "length": 90338345,
+      "variant_count": 8785928,
+      "bins": {
+        "1mb": "bins/by_chrom/chr16_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr16_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr16_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr16_genes.parquet"
+    },
+    {
+      "chrom": "chr17",
+      "length": 83257441,
+      "variant_count": 10744750,
+      "bins": {
+        "1mb": "bins/by_chrom/chr17_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr17_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr17_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr17_genes.parquet"
+    },
+    {
+      "chrom": "chr18",
+      "length": 80373285,
+      "variant_count": 3246732,
+      "bins": {
+        "1mb": "bins/by_chrom/chr18_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr18_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr18_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr18_genes.parquet"
+    },
+    {
+      "chrom": "chr19",
+      "length": 58617616,
+      "variant_count": 11706291,
+      "bins": {
+        "1mb": "bins/by_chrom/chr19_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr19_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr19_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr19_genes.parquet"
+    },
+    {
+      "chrom": "chr20",
+      "length": 64444167,
+      "variant_count": 4616729,
+      "bins": {
+        "1mb": "bins/by_chrom/chr20_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr20_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr20_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr20_genes.parquet"
+    },
+    {
+      "chrom": "chr21",
+      "length": 46709983,
+      "variant_count": 2188842,
+      "bins": {
+        "1mb": "bins/by_chrom/chr21_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr21_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr21_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr21_genes.parquet"
+    },
+    {
+      "chrom": "chr22",
+      "length": 50818468,
+      "variant_count": 4845199,
+      "bins": {
+        "1mb": "bins/by_chrom/chr22_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chr22_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chr22_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chr22_genes.parquet"
+    },
+    {
+      "chrom": "chrX",
+      "length": 156040895,
+      "variant_count": 4685140,
+      "bins": {
+        "1mb": "bins/by_chrom/chrX_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chrX_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chrX_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chrX_genes.parquet"
+    },
+    {
+      "chrom": "chrY",
+      "length": 57227415,
+      "variant_count": 140758,
+      "bins": {
+        "1mb": "bins/by_chrom/chrY_bins_1mb.parquet",
+        "100kb": "bins/by_chrom/chrY_bins_100kb.parquet",
+        "10kb": "bins/by_chrom/chrY_bins_10kb.parquet"
+      },
+      "genes_parquet": "processed/browser/genes/chrY_genes.parquet"
+    }
+  ],
+  "paths": {
+    "cytobands": "processed/browser/cytobands.json",
+    "genes_dir": "processed/browser/genes"
+  }
+}

@@ -1,0 +1,4 @@
+pysam>=0.22
+pandas>=2.0
+fpdf>=1.7
+cairosvg>=2.7

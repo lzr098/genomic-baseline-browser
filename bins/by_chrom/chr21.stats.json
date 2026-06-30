@@ -1,0 +1,15 @@
+{
+  "chrom": "chr21",
+  "chrom_length": 46709983,
+  "variant_allele_count": 2188842,
+  "clinvar_keys": 49886,
+  "gnomad_vcf": "/mnt/data2/0_database/gnomAD/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr21.vcf.bgz",
+  "output_paths": {
+    "1mb": "bins/by_chrom/chr21_bins_1mb.parquet",
+    "100kb": "bins/by_chrom/chr21_bins_100kb.parquet",
+    "10kb": "bins/by_chrom/chr21_bins_10kb.parquet"
+  },
+  "started_at": "2026-06-14T11:36:06.807070+00:00",
+  "finished_at": "2026-06-14T11:37:40.158243+00:00",
+  "duration_sec": 93.4
+}
