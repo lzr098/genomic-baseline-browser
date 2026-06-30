@@ -14,7 +14,7 @@ Launch a local UCSC-style genome browser for a GRCh38 sample VCF. The browser sh
 - **gnomAD exome** — variant density from gnomAD v4.1 exomes
 - **ClinVar** — pathogenic / VUS / benign stacked density
 
-If a local gnomAD exome VCF directory is configured (`GNOMAD_EXOMES_VCF_DIR`), the sample is compared against the baseline and a per-sample variant track is added.
+If a local gnomAD exome VCF directory is configured (`GNOMAD_EXOMES_VCF_DIR`), the sample is compared against the baseline and a per-sample variant track is added. If gnomAD is unavailable, a raw sample track is still built from the input VCF so the sample variants are visible.
 
 ## Input
 
@@ -33,6 +33,7 @@ python scripts/run_skill.py /path/to/sample.vcf.gz
 2. Validate the VCF is GRCh38 (best-effort header check).
 3. If `GNOMAD_EXOMES_VCF_DIR` points to real `gnomad.exomes.v4.1.sites.chr*.vcf.bgz` files:
    - Run `scripts/02_compare_sample.py` to create `compare/{sample_id}/compare_variants.parquet`.
+   - Otherwise, build a raw `compare_variants.parquet` directly from the input VCF (all variants marked as novel).
 4. Run `scripts/06_prepare_browser_data.py --skip-gff3` to refresh the browser manifest.
 5. Start the FastAPI server on `http://127.0.0.1:8765/`.
 
@@ -66,6 +67,6 @@ Required packages: `fastapi`, `uvicorn`, `pandas`, `pyarrow`, `pysam`.
 ## Notes
 
 - Pre-computed baseline bins are in `bins/` and `processed/browser/`. Do not delete them.
-- Without `GNOMAD_EXOMES_VCF_DIR`, the sample comparison step is skipped; only baseline tracks are shown.
+- Without `GNOMAD_EXOMES_VCF_DIR`, the sample track is built from the input VCF instead of being compared to gnomAD. Variants are shown as "novel"; gnomAD/ClinVar details for the variant detail pane are still queried on demand where data is available.
 - PDF variant reports require the gnomAD VCFs and are generated on demand.
 - The server runs in the foreground. Press `Ctrl+C` to stop.
