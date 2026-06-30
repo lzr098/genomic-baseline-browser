@@ -4,7 +4,7 @@
   "gnomad_callset": "exomes",
   "clinvar": "GRCh38 VCF",
   "gff3": "/Users/zhaorongli/WorkBuddy/Claw/exome_baseline_browser_v2/raw/Homo_sapiens.GRCh38.115.gff3",
-  "generated_at": "2026-06-30T13:28:06.143714+00:00",
+  "generated_at": "2026-06-30T13:54:42.851828+00:00",
   "default_chrom": "chr21",
   "click_jump_bp": 100000,
   "zoom_steps_bp": [
@@ -43,8 +43,16 @@
       "type": "sample_stacked"
     }
   },
-  "default_sample": "",
-  "samples": [],
+  "default_sample": "M1ML150017383_L01_438",
+  "samples": [
+    {
+      "id": "M1ML150017383_L01_438",
+      "label": "M1ML150017383_L01_438",
+      "variant_count": 5930,
+      "novel_count": 5930,
+      "compare_parquet": "compare/M1ML150017383_L01_438/compare_variants.parquet"
+    }
+  ],
   "chromosomes": [
     {
       "chrom": "chr1",

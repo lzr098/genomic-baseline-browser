@@ -14,20 +14,23 @@ Steps:
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
+import pandas as pd
 from pysam import VariantFile
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from _config import GNOMAD_EXOMES_VCF_DIR  # noqa: E402
+from _config import COMPARE, GNOMAD_EXOMES_VCF_DIR  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -113,6 +116,71 @@ def run_compare(sample_vcf: Path, sample_id: str) -> None:
     subprocess.run(cmd, check=True)
 
 
+def create_raw_compare_parquet(sample_vcf: Path, sample_id: str) -> None:
+    """Build a minimal compare_variants.parquet when gnomAD is unavailable.
+
+    All variants are marked novel so the sample track still renders. gnomAD
+    match status will be filled in later when the browser detail endpoint
+    falls back to local gnomAD VCFs or API queries.
+    """
+    output_dir = COMPARE / sample_id
+    output_dir.mkdir(parents=True, exist_ok=True)
+    parquet_path = output_dir / "compare_variants.parquet"
+    summary_path = output_dir / "compare_summary.json"
+
+    rows: list[dict[str, Any]] = []
+    with VariantFile(str(sample_vcf)) as vcf:
+        samples = list(vcf.header.samples)
+        sample_col = sample_id if sample_id in samples else (samples[0] if samples else None)
+        for rec in vcf:
+            chrom = str(rec.chrom)
+            if not chrom.startswith("chr"):
+                chrom = f"chr{chrom}"
+            for alt in rec.alts or []:
+                row: dict[str, Any] = {
+                    "chrom": chrom,
+                    "pos": int(rec.pos),
+                    "ref": str(rec.ref),
+                    "alt": str(alt),
+                    "is_novel": True,
+                    "match_status": "novel",
+                    "sample_id": sample_id,
+                }
+                if sample_col and sample_col in rec.samples:
+                    s = rec.samples[sample_col]
+                    row["gt"] = s.get("GT")
+                    row["ad"] = s.get("AD")
+                    row["dp"] = s.get("DP")
+                rows.append(row)
+
+    df = pd.DataFrame(rows)
+    df.to_parquet(parquet_path, index=False)
+    summary = {
+        "sample_id": sample_id,
+        "sample_vcf": str(sample_vcf.resolve()),
+        "skipped": True,
+        "reason": "gnomAD VCFs not configured; raw compare track created",
+        "counts": {
+            "total_variants": int(len(df)),
+            "known_variants": 0,
+            "novel_variants": int(len(df)),
+            "by_match_status": {"novel": int(len(df))},
+        },
+    }
+    summary_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"raw compare track: {parquet_path} ({len(df)} variants)")
+
+
+def set_default_sample(sample_id: str) -> None:
+    manifest_path = ROOT / "processed" / "browser" / "manifest.json"
+    if not manifest_path.exists():
+        return
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["default_sample"] = sample_id
+    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"set default_sample: {sample_id}")
+
+
 def run_prepare_browser() -> None:
     cmd = [
         sys.executable,
@@ -123,6 +191,7 @@ def run_prepare_browser() -> None:
     ]
     print("$ " + " ".join(cmd))
     subprocess.run(cmd, check=True)
+
 
 
 def start_server(port: int) -> subprocess.Popen:
@@ -179,9 +248,11 @@ def main() -> None:
     if not args.skip_compare and gnomad_available():
         run_compare(sample_vcf, sample_id)
     else:
-        print("skipping gnomAD comparison (not configured or --skip-compare)")
+        print("gnomAD VCFs not available (or --skip-compare); building raw compare track")
+        create_raw_compare_parquet(sample_vcf, sample_id)
 
     run_prepare_browser()
+    set_default_sample(sample_id)
 
     port = args.port
     proc = start_server(port)
