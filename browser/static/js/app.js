@@ -9,7 +9,7 @@ import {
   panScrollFromStart,
   startFromPanScroll,
 } from "./coords.js?v=8";
-import { clearSampleBinDetail, setupSampleBinDetail, refreshViewportVariants } from "./sample-detail.js?v=14";
+import { clearSampleBinDetail, setupSampleBinDetail, refreshViewportVariants } from "./sample-detail.js?v=15";
 import { renderBrowserPanel, renderTracksSection, setupBinTooltips, updateIdeogramFromViewport, updatePanelSubtitle } from "./tracks.js?v=10";
 import { setupIdeogramDrag } from "./ideogram.js?v=8";
 

@@ -782,3 +782,23 @@ svg {
 .bin-tooltip-line + .bin-tooltip-line {
   margin-top: 2px;
 }
+
+.gnomad-af-link,
+.gnomad-query-link {
+  color: #1565c0;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.gnomad-af-link:hover,
+.gnomad-query-link:hover {
+  text-decoration: underline;
+}
+
+.gnomad-query-link {
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 1px solid #90caf9;
+  border-radius: 3px;
+  background: #e3f2fd;
+}

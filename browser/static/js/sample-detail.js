@@ -184,11 +184,21 @@ function renderVariantIdCell(variant) {
   return `<span class="variant-id-text">${esc(variant.variant_id)}</span>`;
 }
 
+function renderAfCell(variant) {
+  const value = formatAf(variant.allele_frequency);
+  const page = variant.variant_page;
+  if (!page) return value;
+  if (value === "—") {
+    return `<a class="gnomad-query-link" href="${esc(page)}" target="_blank" rel="noopener noreferrer" title="Query gnomAD for this variant">Query ↗</a>`;
+  }
+  return `<a class="gnomad-af-link" href="${esc(page)}" target="_blank" rel="noopener noreferrer" title="Open in gnomAD">${value} ↗</a>`;
+}
+
 function renderReportCell(variant, sampleId) {
   return `
     <div class="variant-report-actions">
-      <button type="button" class="report-pdf-btn" data-report-kind="reference" data-variant-id="${esc(variant.variant_id)}" title="Baseline variant report">Baseline</button>
-      <button type="button" class="report-pdf-btn" data-report-kind="sample" data-variant-id="${esc(variant.variant_id)}" data-sample-id="${esc(sampleId)}" title="Sample vs baseline report">Sample</button>
+      <button type="button" class="report-pdf-btn" data-report-kind="reference" data-variant-id="${esc(variant.variant_id)}" title="Reference / baseline variant report (gnomAD-based)">Baseline</button>
+      <button type="button" class="report-pdf-btn" data-report-kind="sample" data-variant-id="${esc(variant.variant_id)}" data-sample-id="${esc(sampleId)}" title="Sample-specific variant report">Sample</button>
     </div>
   `;
 }
@@ -207,7 +217,7 @@ function renderVariantRow(variant, sampleId) {
       <td class="col-variant">${renderVariantCell(variant)}</td>
       <td class="col-vep">${renderVepCell(variant)}</td>
       <td class="col-clinvar">${clin}</td>
-      <td class="col-af">${formatAf(variant.allele_frequency)}</td>
+      <td class="col-af">${renderAfCell(variant)}</td>
       <td class="col-flags">${renderFlags(variant.flags)}</td>
       <td class="col-report">${renderReportCell(variant, sampleId)}</td>
     </tr>
