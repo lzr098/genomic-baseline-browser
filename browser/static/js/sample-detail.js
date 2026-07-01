@@ -1,7 +1,8 @@
-import { fetchSampleBinVariants, fetchSampleViewportVariants } from "./api.js?v=14";
+import { fetchConfig, fetchSampleBinVariants, fetchSampleViewportVariants, fetchVariantGnomad } from "./api.js?v=15";
 
 let selectedHit = null;
 let context = null;
+let config = null;
 let tableState = {
   variants: [],
   sampleId: "",
@@ -184,26 +185,34 @@ function renderVariantIdCell(variant) {
   return `<span class="variant-id-text">${esc(variant.variant_id)}</span>`;
 }
 
-function renderAfCell(variant) {
+function renderAfCell(variant, index) {
   const value = formatAf(variant.allele_frequency);
   const page = variant.variant_page;
   if (!page) return value;
+  if (variant._querying) {
+    return `<span class="gnomad-query-link" aria-busy="true">…</span>`;
+  }
   if (value === "—") {
-    return `<a class="gnomad-query-link" href="${esc(page)}" target="_blank" rel="noopener noreferrer" title="Query gnomAD for this variant">Query ↗</a>`;
+    return `<button type="button" class="gnomad-query-link query-af-btn" data-variant-idx="${index}" title="Query gnomAD for this variant">Query ↗</button>`;
   }
   return `<a class="gnomad-af-link" href="${esc(page)}" target="_blank" rel="noopener noreferrer" title="Open in gnomAD">${value} ↗</a>`;
 }
 
 function renderReportCell(variant, sampleId) {
+  const gnomadConfigured = config?.gnomad_exomes_vcf_dir_configured ?? false;
+  const disabled = gnomadConfigured ? "" : " disabled";
+  const title = gnomadConfigured
+    ? "Reference / baseline variant report (gnomAD-based)"
+    : "Reports require a local gnomAD exome VCF. Set GNOMAD_EXOMES_VCF_DIR and restart.";
   return `
     <div class="variant-report-actions">
-      <button type="button" class="report-pdf-btn" data-report-kind="reference" data-variant-id="${esc(variant.variant_id)}" title="Reference / baseline variant report (gnomAD-based)">Baseline</button>
-      <button type="button" class="report-pdf-btn" data-report-kind="sample" data-variant-id="${esc(variant.variant_id)}" data-sample-id="${esc(sampleId)}" title="Sample-specific variant report">Sample</button>
+      <button type="button" class="report-pdf-btn"${disabled} data-report-kind="reference" data-variant-id="${esc(variant.variant_id)}" title="${title}">Baseline</button>
+      <button type="button" class="report-pdf-btn"${disabled} data-report-kind="sample" data-variant-id="${esc(variant.variant_id)}" data-sample-id="${esc(sampleId)}" title="Sample-specific variant report">Sample</button>
     </div>
   `;
 }
 
-function renderVariantRow(variant, sampleId) {
+function renderVariantRow(variant, sampleId, index) {
   const clin = variant.germline_classification
     ? `<span class="germline-link">${esc(variant.germline_classification)}</span>`
     : "—";
@@ -217,7 +226,7 @@ function renderVariantRow(variant, sampleId) {
       <td class="col-variant">${renderVariantCell(variant)}</td>
       <td class="col-vep">${renderVepCell(variant)}</td>
       <td class="col-clinvar">${clin}</td>
-      <td class="col-af">${renderAfCell(variant)}</td>
+      <td class="col-af">${renderAfCell(variant, index)}</td>
       <td class="col-flags">${renderFlags(variant.flags)}</td>
       <td class="col-report">${renderReportCell(variant, sampleId)}</td>
     </tr>
@@ -242,7 +251,7 @@ function renderTableHead(sortKey, sortDir) {
 
 function renderVariantTable(variants, sampleId, sortKey, sortDir) {
   const rows = sortedVariants(variants, sortKey, sortDir);
-  const body = rows.map((variant) => renderVariantRow(variant, sampleId)).join("");
+  const body = rows.map((variant, index) => renderVariantRow(variant, sampleId, index)).join("");
 
   return `
     <div class="sample-variant-table-wrap">
@@ -410,16 +419,49 @@ async function onSampleBinClick(hit) {
   }
 }
 
+async function onQueryAfClick(btn) {
+  const idx = Number(btn.dataset.variantIdx);
+  if (!Number.isFinite(idx) || idx < 0 || idx >= tableState.variants.length) return;
+  const variant = tableState.variants[idx];
+  if (!variant || variant.allele_frequency != null || variant._querying) return;
+
+  variant._querying = true;
+  refreshVariantTableBody();
+
+  try {
+    const data = await fetchVariantGnomad(variant.variant_id);
+    variant.allele_frequency = data.af ?? null;
+    variant.allele_count = data.exome?.ac ?? data.genome?.ac ?? null;
+    variant.allele_number = data.exome?.an ?? data.genome?.an ?? null;
+    variant.homozygote_count = null;
+    variant._querying = false;
+  } catch (err) {
+    variant._querying = false;
+    variant._queryError = err.message || "Query failed";
+  }
+  refreshVariantTableBody();
+}
+
 export function setupSampleBinDetail(ctx, root = document.getElementById("tracks-section")) {
   context = ctx;
   if (!root) return;
 
+  // Load config once; it is used to decide whether report buttons are enabled.
+  fetchConfig().then((cfg) => {
+    config = cfg;
+    refreshVariantTableBody();
+  }).catch(() => {
+    config = { gnomad_exomes_vcf_dir_configured: false };
+    refreshVariantTableBody();
+  });
+
   if (root._sampleBinClick) root.removeEventListener("click", root._sampleBinClick);
   if (root._sampleReportClick) root.removeEventListener("click", root._sampleReportClick);
   if (root._tableSortClick) root.removeEventListener("click", root._tableSortClick);
+  if (root._queryAfClick) root.removeEventListener("click", root._queryAfClick);
 
   root._sampleBinClick = (ev) => {
-    if (ev.target.closest?.(".report-pdf-btn, .table-sort-btn, #show-viewport-variants")) return;
+    if (ev.target.closest?.(".report-pdf-btn, .table-sort-btn, #show-viewport-variants, .query-af-btn")) return;
     const hit = ev.target.closest?.(".sample-bin-hit");
     if (!hit || !root.contains(hit)) return;
     ev.preventDefault();
@@ -436,6 +478,10 @@ export function setupSampleBinDetail(ctx, root = document.getElementById("tracks
     const sampleId = btn.dataset.sampleId || context?.getSampleId?.();
     if (!variantId || !kind) return;
     if (kind === "sample" && !sampleId) return;
+    if (btn.disabled) {
+      window.alert("Reports require a local gnomAD exome VCF. Set GNOMAD_EXOMES_VCF_DIR and restart.");
+      return;
+    }
     downloadReportPdf(btn, variantId, kind, sampleId);
   };
 
@@ -456,9 +502,18 @@ export function setupSampleBinDetail(ctx, root = document.getElementById("tracks
     renderDetailHeader();
   };
 
+  root._queryAfClick = (ev) => {
+    const btn = ev.target.closest?.(".query-af-btn");
+    if (!btn || !root.contains(btn)) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    onQueryAfClick(btn);
+  };
+
   root.addEventListener("click", root._sampleBinClick);
   root.addEventListener("click", root._sampleReportClick);
   root.addEventListener("click", root._tableSortClick);
+  root.addEventListener("click", root._queryAfClick);
 
   // Load the viewport-wide variant list by default
   loadViewportVariants();

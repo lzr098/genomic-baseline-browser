@@ -52,3 +52,18 @@ export async function fetchSampleViewportVariants(chrom, sampleId, start, end, l
   }
   return res.json();
 }
+
+export async function fetchConfig() {
+  const res = await fetch("/api/config");
+  if (!res.ok) throw new Error(`config ${res.status}`);
+  return res.json();
+}
+
+export async function fetchVariantGnomad(variantId) {
+  const res = await fetch(`/api/variants/${encodeURIComponent(variantId)}/gnomad`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `gnomad ${res.status}`);
+  }
+  return res.json();
+}

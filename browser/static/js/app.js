@@ -1,4 +1,4 @@
-import { fetchChromMeta, fetchManifest, fetchViewport } from "./api.js?v=14";
+import { fetchChromMeta, fetchManifest, fetchViewport } from "./api.js?v=15";
 import {
   LABEL_WIDTH,
   centerViewport,

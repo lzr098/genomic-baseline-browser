@@ -564,8 +564,8 @@ svg {
 }
 
 .report-pdf-btn:disabled {
-  opacity: 0.6;
-  cursor: wait;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .variant-id-link,
@@ -801,4 +801,11 @@ svg {
   border: 1px solid #90caf9;
   border-radius: 3px;
   background: #e3f2fd;
+  cursor: pointer;
+  font: inherit;
+}
+
+.gnomad-query-link[aria-busy="true"] {
+  opacity: 0.6;
+  cursor: wait;
 }

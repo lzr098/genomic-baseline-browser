@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,6 +22,8 @@ from _browser_reports import (  # noqa: E402
     generate_sample_report_pdf,
 )
 from _browser_viewport import BrowserDataStore  # noqa: E402
+from _config import GNOMAD_EXOMES_VCF_DIR  # noqa: E402
+from _gnomad_api import query_gnomad_af  # noqa: E402
 
 app = FastAPI(
     title="Exome Baseline Genome Browser API",
@@ -114,6 +117,26 @@ def get_sample_viewport_variants(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/api/config")
+def get_config() -> dict[str, Any]:
+    return {
+        "gnomad_exomes_vcf_dir_configured": GNOMAD_EXOMES_VCF_DIR is not None
+        and Path(GNOMAD_EXOMES_VCF_DIR).exists(),
+    }
+
+
+@app.get("/api/variants/{variant_id}/gnomad")
+def get_variant_gnomad(variant_id: str) -> dict[str, Any]:
+    data = query_gnomad_af(variant_id)
+    if data is None:
+        raise HTTPException(status_code=404, detail=f"gnomAD data not found for {variant_id}")
+    return {
+        "variant_id": variant_id,
+        "gnomad_url": f"https://gnomad.broadinstitute.org/variant/{variant_id}?dataset=gnomad_r4",
+        **data,
+    }
 
 
 @app.get("/api/variants/{variant_id}/report/reference.pdf")
