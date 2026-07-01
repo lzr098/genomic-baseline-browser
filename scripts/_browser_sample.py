@@ -13,6 +13,7 @@ import pandas as pd
 import pysam
 
 from _bin_builder import bin_key, load_clinvar_map
+from _browser_gff3 import gene_context_for_position
 from _config import COMPARE, ROOT, gnomad_vcf_path
 from _variant_report import (
     _allele_index,
@@ -286,6 +287,95 @@ def _germline_classification(
     return None
 
 
+def _build_variant_rows(
+    rows_df: pd.DataFrame,
+    chrom: str,
+    root: Path,
+) -> list[dict[str, Any]]:
+    """Build detailed variant rows from a filtered DataFrame subset."""
+    if rows_df.empty:
+        return []
+
+    pos_min = int(rows_df["pos"].min())
+    pos_max = int(rows_df["pos"].max())
+    gnomad_index = _gnomad_region_index(chrom, pos_min, pos_max)
+    genomes_present = _gnomad_genomes_presence(chrom, pos_min, pos_max)
+    clinvar_map = load_clinvar_map(chrom)
+
+    variants: list[dict[str, Any]] = []
+    for _, row in rows_df.iterrows():
+        pos = int(row["pos"])
+        ref = str(row["ref"])
+        alt = str(row["alt"])
+        key = (pos, ref, alt)
+        gnomad = gnomad_index.get(key, {})
+        hgvsc = gnomad.get("hgvsc")
+        hgvsp = gnomad.get("hgvsp")
+        consequence = gnomad.get("consequence")
+        variant_id = _canonical_variant_id(chrom, pos, ref, alt)
+        in_exome = key in gnomad_index
+        in_genome = key in genomes_present
+        raw_clinsig = _germline_classification(
+            chrom,
+            pos,
+            ref,
+            alt,
+            clinvar_map,
+            row.get("clinsig"),
+            row.get("clinical_tier"),
+        )
+        gene_context = gene_context_for_position(chrom, pos, root)
+        location_consequence = _location_consequence_from_gene_context(gene_context)
+        variants.append(
+            {
+                "variant_id": variant_id,
+                "variant_page": gnomad_variant_page_url(variant_id),
+                "chrom": chrom,
+                "pos": pos,
+                "ref": ref,
+                "alt": alt,
+                "locus": f"{chrom}:{pos:,}",
+                "is_novel": bool(row.get("is_novel")),
+                "match_status": str(row.get("match_status") or ""),
+                "source_exome": in_exome,
+                "source_genome": in_genome,
+                "hgvs_consequence": _format_hgvs_consequence(hgvsc, hgvsp),
+                "vep_annotation": _format_vep_annotation(consequence),
+                "vep_category": _vep_category(consequence),
+                "location_consequence": location_consequence,
+                "lof_curation": None,
+                "germline_classification": _format_germline_label(
+                    raw_clinsig,
+                    str(row.get("clinical_tier") or "") or None,
+                ),
+                "flags": ["novel"] if bool(row.get("is_novel")) else [],
+                "gene_context": gene_context,
+                "allele_count": gnomad.get("allele_count"),
+                "allele_number": gnomad.get("allele_number"),
+                "allele_frequency": gnomad.get("allele_frequency")
+                if gnomad.get("allele_frequency") is not None
+                else (float(row["gnomad_af"]) if pd.notna(row.get("gnomad_af")) else None),
+                "homozygote_count": gnomad.get("homozygote_count"),
+            }
+        )
+
+    return variants
+
+
+def _location_consequence_from_gene_context(gene_context: dict[str, Any] | None) -> str | None:
+    """Return a simple consequence string from gene context when VEP is missing."""
+    if not gene_context:
+        return "intergenic"
+    location = (gene_context.get("location") or "").lower()
+    if "exon" in location:
+        return "exonic"
+    if "intron" in location:
+        return "intronic"
+    if "flanking" in location:
+        return "flanking"
+    return "genic"
+
+
 def load_sample_bin_variant_details(
     sample_id: str,
     chrom: str,
@@ -317,70 +407,58 @@ def load_sample_bin_variant_details(
         }
 
     rows = sub.head(int(limit))
-    pos_min = int(rows["pos"].min())
-    pos_max = int(rows["pos"].max())
-    gnomad_index = _gnomad_region_index(chrom, pos_min, pos_max)
-    genomes_present = _gnomad_genomes_presence(chrom, pos_min, pos_max)
-    clinvar_map = load_clinvar_map(chrom)
-
-    variants: list[dict[str, Any]] = []
-    for _, row in rows.iterrows():
-        pos = int(row["pos"])
-        ref = str(row["ref"])
-        alt = str(row["alt"])
-        key = (pos, ref, alt)
-        gnomad = gnomad_index.get(key, {})
-        hgvsc = gnomad.get("hgvsc")
-        hgvsp = gnomad.get("hgvsp")
-        consequence = gnomad.get("consequence")
-        variant_id = _canonical_variant_id(chrom, pos, ref, alt)
-        in_exome = key in gnomad_index
-        in_genome = key in genomes_present
-        raw_clinsig = _germline_classification(
-            chrom,
-            pos,
-            ref,
-            alt,
-            clinvar_map,
-            row.get("clinsig"),
-            row.get("clinical_tier"),
-        )
-        variants.append(
-            {
-                "variant_id": variant_id,
-                "variant_page": gnomad_variant_page_url(variant_id),
-                "chrom": chrom,
-                "pos": pos,
-                "ref": ref,
-                "alt": alt,
-                "locus": f"{chrom}:{pos:,}",
-                "is_novel": bool(row.get("is_novel")),
-                "match_status": str(row.get("match_status") or ""),
-                "source_exome": in_exome,
-                "source_genome": in_genome,
-                "hgvs_consequence": _format_hgvs_consequence(hgvsc, hgvsp),
-                "vep_annotation": _format_vep_annotation(consequence),
-                "vep_category": _vep_category(consequence),
-                "lof_curation": None,
-                "germline_classification": _format_germline_label(
-                    raw_clinsig,
-                    str(row.get("clinical_tier") or "") or None,
-                ),
-                "flags": ["novel"] if bool(row.get("is_novel")) else [],
-                "allele_count": gnomad.get("allele_count"),
-                "allele_number": gnomad.get("allele_number"),
-                "allele_frequency": gnomad.get("allele_frequency")
-                if gnomad.get("allele_frequency") is not None
-                else (float(row["gnomad_af"]) if pd.notna(row.get("gnomad_af")) else None),
-                "homozygote_count": gnomad.get("homozygote_count"),
-            }
-        )
+    variants = _build_variant_rows(rows, chrom, root)
 
     return {
         "sample_id": sample_id,
         "chrom": chrom,
         "bin_start": int(bin_start),
         "bin_end": int(bin_end),
+        "total_count": total_count,
+        "returned_count": len(variants),
+        "truncated": total_count > len(variants),
+        "variants": variants,
+    }
+
+
+def load_sample_viewport_variants(
+    sample_id: str,
+    chrom: str,
+    start: int,
+    end: int,
+    root: Path = ROOT,
+    *,
+    limit: int = 500,
+) -> dict[str, Any]:
+    """Return per-variant browser detail rows across the full current viewport."""
+    frame = _load_sample_frame(sample_id, str(root))
+    sub = frame[
+        (frame["chrom"] == chrom)
+        & (frame["pos"] >= int(start))
+        & (frame["pos"] <= int(end))
+    ].sort_values(["pos", "ref", "alt"])
+
+    total_count = int(len(sub))
+    if total_count == 0:
+        return {
+            "sample_id": sample_id,
+            "chrom": chrom,
+            "start": int(start),
+            "end": int(end),
+            "total_count": 0,
+            "returned_count": 0,
+            "truncated": False,
+            "variants": [],
+        }
+
+    rows = sub.head(int(limit))
+    variants = _build_variant_rows(rows, chrom, root)
+
+    return {
+        "sample_id": sample_id,
+        "chrom": chrom,
+        "start": int(start),
+        "end": int(end),
         "total_count": total_count,
         "returned_count": len(variants),
         "truncated": total_count > len(variants),

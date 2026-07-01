@@ -4,7 +4,7 @@
   "gnomad_callset": "exomes",
   "clinvar": "GRCh38 VCF",
   "gff3": "/Users/zhaorongli/WorkBuddy/Claw/exome_baseline_browser_v2/raw/Homo_sapiens.GRCh38.115.gff3",
-  "generated_at": "2026-06-30T13:54:42.851828+00:00",
+  "generated_at": "2026-07-01T02:21:13.796890+00:00",
   "default_chrom": "chr21",
   "click_jump_bp": 100000,
   "zoom_steps_bp": [

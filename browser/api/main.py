@@ -97,6 +97,25 @@ def get_sample_bin_variants(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
+@app.get("/api/chrom/{chrom}/sample/{sample_id}/variants")
+def get_sample_viewport_variants(
+    chrom: str,
+    sample_id: str,
+    start: int = Query(..., ge=1, description="1-based inclusive viewport start"),
+    end: int = Query(..., ge=1, description="1-based inclusive viewport end"),
+    limit: int = Query(500, ge=1, le=2000, description="Max variants returned"),
+) -> dict:
+    chrom = chrom if chrom.startswith("chr") else f"chr{chrom}"
+    try:
+        return store.sample_viewport_variants(chrom, sample_id, start, end, limit=limit)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
 @app.get("/api/variants/{variant_id}/report/reference.pdf")
 def get_reference_variant_report_pdf(variant_id: str) -> FileResponse:
     try:

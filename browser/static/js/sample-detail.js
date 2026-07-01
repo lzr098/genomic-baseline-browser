@@ -1,4 +1,4 @@
-import { fetchSampleBinVariants } from "./api.js?v=12";
+import { fetchSampleBinVariants, fetchSampleViewportVariants } from "./api.js?v=14";
 
 let selectedHit = null;
 let context = null;
@@ -7,21 +7,21 @@ let tableState = {
   sampleId: "",
   sortKey: "pos",
   sortDir: "asc",
+  mode: "viewport", // "viewport" or "bin"
+  rangeLabel: "",
 };
 
 const TABLE_COLUMNS = [
-  { key: "variant_id", label: "Variant ID", className: "col-variant-id", sortable: true },
-  { key: "source", label: "Source", className: "col-source", sortable: true },
-  { key: "hgvs_consequence", label: "HGVS Consequence", className: "col-hgvs", sortable: true },
-  { key: "vep_annotation", label: "VEP Annotation", className: "col-vep", sortable: true },
-  { key: "lof_curation", label: "LoF Curation", className: "col-lof", sortable: true },
-  { key: "germline_classification", label: "Germline classification", className: "col-germline", sortable: true },
-  { key: "flags", label: "Flags", className: "col-flags", sortable: true },
-  { key: "allele_count", label: "Allele Count", className: "col-num", sortable: true },
-  { key: "allele_number", label: "Allele Number", className: "col-num", sortable: true },
-  { key: "allele_frequency", label: "Allele Frequency", className: "col-num", sortable: true },
-  { key: "homozygote_count", label: "Number of Homozygotes", className: "col-num", sortable: true },
-  { key: "report", label: "report", className: "col-report", sortable: false },
+  { key: "locus", label: "Locus", className: "col-locus", sortable: true },
+  { key: "gene_name", label: "Gene", className: "col-gene", sortable: true },
+  { key: "location", label: "Location", className: "col-location", sortable: true },
+  { key: "consequence", label: "Consequence", className: "col-consequence", sortable: true },
+  { key: "variant", label: "Ref → Alt", className: "col-variant", sortable: false },
+  { key: "vep_annotation", label: "VEP", className: "col-vep", sortable: true },
+  { key: "germline_classification", label: "ClinVar", className: "col-clinvar", sortable: true },
+  { key: "allele_frequency", label: "gnomAD AF", className: "col-af", sortable: true },
+  { key: "flags", label: "Flags", className: "col-flags", sortable: false },
+  { key: "report", label: "Actions", className: "col-report", sortable: false },
 ];
 
 function esc(text) {
@@ -36,7 +36,8 @@ function formatAf(value) {
   if (value == null || Number.isNaN(Number(value))) return "—";
   const n = Number(value);
   if (n === 0) return "0";
-  return n.toExponential(2);
+  if (n < 0.001) return n.toExponential(2);
+  return n.toFixed(4);
 }
 
 function formatInt(value) {
@@ -80,20 +81,53 @@ async function downloadReportPdf(button, variantId, kind, sampleId) {
   }
 }
 
+function geneName(variant) {
+  const ctx = variant.gene_context;
+  if (ctx && ctx.gene_name) return ctx.gene_name;
+  return "—";
+}
+
+function geneLocation(variant) {
+  const ctx = variant.gene_context;
+  if (!ctx) return "intergenic";
+  const loc = ctx.location || "";
+  if (loc === "intron" && ctx.distance_to_exon != null) {
+    return `intron (${ctx.distance_to_exon.toLocaleString()} bp to exon)`;
+  }
+  return loc;
+}
+
+function consequence(variant) {
+  if (variant.vep_annotation) return variant.vep_annotation;
+  if (variant.location_consequence) return variant.location_consequence;
+  return "—";
+}
+
+function vepCategoryClass(variant) {
+  const cat = variant.vep_category || "other";
+  return `vep-${esc(cat)}`;
+}
+
 function sortValue(variant, key) {
   switch (key) {
-    case "variant_id":
-      return variant.variant_id || "";
-    case "source":
-      return (variant.source_exome ? 2 : 0) + (variant.source_genome ? 1 : 0);
-    case "flags":
-      return (variant.flags || []).join(",");
-    case "allele_count":
-    case "allele_number":
-    case "homozygote_count":
-      return variant[key] == null ? Number.NEGATIVE_INFINITY : Number(variant[key]);
+    case "locus":
+      return Number(variant.pos) || 0;
+    case "gene_name":
+      return geneName(variant);
+    case "location":
+      return geneLocation(variant);
+    case "consequence":
+      return consequence(variant);
+    case "variant":
+      return `${variant.ref || ""}→${variant.alt || ""}`;
+    case "vep_annotation":
+      return variant.vep_annotation || "";
+    case "germline_classification":
+      return variant.germline_classification || "";
     case "allele_frequency":
       return variant.allele_frequency == null ? Number.NEGATIVE_INFINITY : Number(variant.allele_frequency);
+    case "flags":
+      return (variant.flags || []).join(",");
     case "pos":
       return Number(variant.pos) || 0;
     default:
@@ -125,15 +159,10 @@ function sortedVariants(variants, sortKey, sortDir) {
   });
 }
 
-function renderSourceBadges(variant) {
-  const badges = [];
-  if (variant.source_exome) {
-    badges.push('<span class="src-badge src-exome" title="gnomAD exomes">E</span>');
-  }
-  if (variant.source_genome) {
-    badges.push('<span class="src-badge src-genome" title="gnomAD genomes">G</span>');
-  }
-  return badges.length ? badges.join("") : "—";
+function renderVariantCell(variant) {
+  const ref = variant.ref || "—";
+  const alt = variant.alt || "—";
+  return `${esc(ref)} <span style="color:#999">→</span> ${esc(alt)}`;
 }
 
 function renderVepCell(variant) {
@@ -158,30 +187,28 @@ function renderVariantIdCell(variant) {
 function renderReportCell(variant, sampleId) {
   return `
     <div class="variant-report-actions">
-      <button type="button" class="report-pdf-btn" data-report-kind="reference" data-variant-id="${esc(variant.variant_id)}" title="Baseline variant report (English PDF)">Baseline PDF</button>
-      <button type="button" class="report-pdf-btn" data-report-kind="sample" data-variant-id="${esc(variant.variant_id)}" data-sample-id="${esc(sampleId)}" title="Sample vs baseline report (English PDF)">Sample PDF</button>
+      <button type="button" class="report-pdf-btn" data-report-kind="reference" data-variant-id="${esc(variant.variant_id)}" title="Baseline variant report">Baseline</button>
+      <button type="button" class="report-pdf-btn" data-report-kind="sample" data-variant-id="${esc(variant.variant_id)}" data-sample-id="${esc(sampleId)}" title="Sample vs baseline report">Sample</button>
     </div>
   `;
 }
 
 function renderVariantRow(variant, sampleId) {
-  const germline = variant.germline_classification
+  const clin = variant.germline_classification
     ? `<span class="germline-link">${esc(variant.germline_classification)}</span>`
     : "—";
 
   return `
     <tr>
-      <td class="col-variant-id">${renderVariantIdCell(variant)}</td>
-      <td class="col-source">${renderSourceBadges(variant)}</td>
-      <td class="col-hgvs">${variant.hgvs_consequence ? esc(variant.hgvs_consequence) : "—"}</td>
+      <td class="col-locus"><a class="variant-id-link" href="${esc(variant.variant_page || "#")}" target="_blank" rel="noopener noreferrer">${esc(variant.locus || `${variant.chrom}:${variant.pos}`)}</a></td>
+      <td class="col-gene">${esc(geneName(variant))}</td>
+      <td class="col-location">${esc(geneLocation(variant))}</td>
+      <td class="col-consequence">${esc(consequence(variant))}</td>
+      <td class="col-variant">${renderVariantCell(variant)}</td>
       <td class="col-vep">${renderVepCell(variant)}</td>
-      <td class="col-lof">${variant.lof_curation ? esc(variant.lof_curation) : "—"}</td>
-      <td class="col-germline">${germline}</td>
+      <td class="col-clinvar">${clin}</td>
+      <td class="col-af">${formatAf(variant.allele_frequency)}</td>
       <td class="col-flags">${renderFlags(variant.flags)}</td>
-      <td class="col-num">${formatInt(variant.allele_count)}</td>
-      <td class="col-num">${formatInt(variant.allele_number)}</td>
-      <td class="col-num">${formatAf(variant.allele_frequency)}</td>
-      <td class="col-num">${formatInt(variant.homozygote_count)}</td>
       <td class="col-report">${renderReportCell(variant, sampleId)}</td>
     </tr>
   `;
@@ -230,33 +257,37 @@ function refreshVariantTableBody() {
   );
 }
 
-function renderDetailPayload(payload) {
+function renderDetailHeader() {
   const header = document.getElementById("sample-bin-detail-header");
-  const body = document.getElementById("sample-bin-detail-body");
-  const panel = document.getElementById("sample-bin-detail");
-  if (!header || !body || !panel) return;
+  if (!header) return;
 
-  const range = `${Number(payload.bin_start).toLocaleString()} – ${Number(payload.bin_end).toLocaleString()}`;
-  const countNote = payload.truncated
-    ? `Showing ${payload.returned_count} of ${payload.total_count} variants`
-    : `${payload.total_count} variant${payload.total_count === 1 ? "" : "s"}`;
+  const { mode, rangeLabel, variants, sampleId, truncated, totalCount } = tableState;
+  const countNote = totalCount === 0
+    ? "0 variants"
+    : truncated
+      ? `Showing ${variants.length} of ${totalCount} variants`
+      : `${totalCount} variant${totalCount === 1 ? "" : "s"}`;
+  const modeLabel = mode === "bin" ? "bin" : "current view";
 
   header.innerHTML = `
-    <strong>${esc(payload.sample_id)}</strong>
-    <span class="sample-bin-detail-range">${esc(payload.chrom)}:${range}</span>
-    <span class="sample-bin-detail-count">${esc(countNote)}</span>
+    <strong>${esc(sampleId)}</strong>
+    <span class="sample-bin-detail-range">${esc(rangeLabel)}</span>
+    <span class="sample-bin-detail-count">${esc(countNote)} in ${esc(modeLabel)}</span>
+    ${mode === "bin" ? `<button type="button" id="show-viewport-variants" class="report-pdf-btn">Show all in view</button>` : ""}
   `;
 
-  if (!payload.variants?.length) {
-    tableState = { variants: [], sampleId: "", sortKey: "pos", sortDir: "asc" };
-    body.innerHTML = `<p class="sample-bin-detail-empty">No variants in this bin.</p>`;
+  const showAllBtn = document.getElementById("show-viewport-variants");
+  if (showAllBtn) {
+    showAllBtn.addEventListener("click", () => loadViewportVariants());
+  }
+}
+
+function renderDetailBody() {
+  const body = document.getElementById("sample-bin-detail-body");
+  if (!body) return;
+  if (!tableState.variants.length) {
+    body.innerHTML = `<p class="sample-bin-detail-empty">No variants in this region.</p>`;
   } else {
-    tableState = {
-      variants: payload.variants,
-      sampleId: payload.sample_id,
-      sortKey: "pos",
-      sortDir: "asc",
-    };
     body.innerHTML = renderVariantTable(
       tableState.variants,
       tableState.sampleId,
@@ -264,8 +295,19 @@ function renderDetailPayload(payload) {
       tableState.sortDir
     );
   }
+}
 
+function renderDetailPanel() {
+  const panel = document.getElementById("sample-bin-detail");
+  if (!panel) return;
   panel.hidden = false;
+  renderDetailHeader();
+  renderDetailBody();
+}
+
+function setTableState(updates) {
+  tableState = { ...tableState, ...updates };
+  renderDetailPanel();
 }
 
 function clearSelection() {
@@ -275,9 +317,15 @@ function clearSelection() {
   }
 }
 
+function markSelected(hit) {
+  clearSelection();
+  selectedHit = hit;
+  hit.classList.add("sample-bin-selected");
+}
+
 export function clearSampleBinDetail() {
   clearSelection();
-  tableState = { variants: [], sampleId: "", sortKey: "pos", sortDir: "asc" };
+  tableState = { variants: [], sampleId: "", sortKey: "pos", sortDir: "asc", mode: "viewport", rangeLabel: "" };
   const panel = document.getElementById("sample-bin-detail");
   const header = document.getElementById("sample-bin-detail-header");
   const body = document.getElementById("sample-bin-detail-body");
@@ -286,10 +334,35 @@ export function clearSampleBinDetail() {
   if (body) body.innerHTML = "";
 }
 
-function markSelected(hit) {
-  clearSelection();
-  selectedHit = hit;
-  hit.classList.add("sample-bin-selected");
+async function loadViewportVariants() {
+  if (!context) return;
+  const sampleId = context.getSampleId();
+  const chrom = context.getChrom();
+  const { start, end } = context.getViewport() || { start: 1, end: 1 };
+  if (!sampleId || !chrom || end < start) return;
+
+  setTableState({
+    mode: "viewport",
+    rangeLabel: `${chrom}:${start.toLocaleString()} – ${end.toLocaleString()}`,
+    sampleId,
+    variants: [],
+    totalCount: 0,
+    truncated: false,
+  });
+
+  try {
+    const payload = await fetchSampleViewportVariants(chrom, sampleId, start, end, 500);
+    setTableState({
+      variants: payload.variants || [],
+      totalCount: payload.total_count || 0,
+      truncated: payload.truncated || false,
+      sampleId: payload.sample_id || sampleId,
+    });
+  } catch (err) {
+    setTableState({ variants: [], totalCount: 0, truncated: false });
+    const body = document.getElementById("sample-bin-detail-body");
+    if (body) body.innerHTML = `<p class="sample-bin-detail-empty">${esc(err.message)}</p>`;
+  }
 }
 
 async function onSampleBinClick(hit) {
@@ -300,27 +373,30 @@ async function onSampleBinClick(hit) {
 
   markSelected(hit);
 
-  const header = document.getElementById("sample-bin-detail-header");
-  const body = document.getElementById("sample-bin-detail-body");
-  const panel = document.getElementById("sample-bin-detail");
-  if (!header || !body || !panel) return;
-
-  panel.hidden = false;
-  header.innerHTML = `<strong>${esc(context.getSampleId())}</strong> <span class="sample-bin-detail-range">Loading bin ${binStart.toLocaleString()} – ${binEnd.toLocaleString()}…</span>`;
-  body.innerHTML = `<p class="sample-bin-detail-empty">Loading variants…</p>`;
+  const sampleId = context.getSampleId();
+  const chrom = context.getChrom();
+  setTableState({
+    mode: "bin",
+    rangeLabel: `${chrom}:${binStart.toLocaleString()} – ${binEnd.toLocaleString()}`,
+    sampleId,
+    variants: [],
+    totalCount: 0,
+    truncated: false,
+  });
 
   try {
-    const payload = await fetchSampleBinVariants(
-      context.getChrom(),
-      context.getSampleId(),
-      binStart,
-      binEnd
-    );
-    renderDetailPayload(payload);
+    const payload = await fetchSampleBinVariants(chrom, sampleId, binStart, binEnd, 100);
+    setTableState({
+      variants: payload.variants || [],
+      totalCount: payload.total_count || 0,
+      truncated: payload.truncated || false,
+      sampleId: payload.sample_id || sampleId,
+    });
     markSelected(hit);
   } catch (err) {
-    header.innerHTML = `<strong>${esc(context.getSampleId())}</strong> <span class="sample-bin-detail-range">Bin load failed</span>`;
-    body.innerHTML = `<p class="sample-bin-detail-empty">${esc(err.message)}</p>`;
+    setTableState({ variants: [], totalCount: 0, truncated: false });
+    const body = document.getElementById("sample-bin-detail-body");
+    if (body) body.innerHTML = `<p class="sample-bin-detail-empty">${esc(err.message)}</p>`;
   }
 }
 
@@ -328,18 +404,12 @@ export function setupSampleBinDetail(ctx, root = document.getElementById("tracks
   context = ctx;
   if (!root) return;
 
-  if (root._sampleBinClick) {
-    root.removeEventListener("click", root._sampleBinClick);
-  }
-  if (root._sampleReportClick) {
-    root.removeEventListener("click", root._sampleReportClick);
-  }
-  if (root._tableSortClick) {
-    root.removeEventListener("click", root._tableSortClick);
-  }
+  if (root._sampleBinClick) root.removeEventListener("click", root._sampleBinClick);
+  if (root._sampleReportClick) root.removeEventListener("click", root._sampleReportClick);
+  if (root._tableSortClick) root.removeEventListener("click", root._tableSortClick);
 
   root._sampleBinClick = (ev) => {
-    if (ev.target.closest?.(".report-pdf-btn, .table-sort-btn")) return;
+    if (ev.target.closest?.(".report-pdf-btn, .table-sort-btn, #show-viewport-variants")) return;
     const hit = ev.target.closest?.(".sample-bin-hit");
     if (!hit || !root.contains(hit)) return;
     ev.preventDefault();
@@ -370,12 +440,20 @@ export function setupSampleBinDetail(ctx, root = document.getElementById("tracks
       tableState.sortDir = tableState.sortDir === "asc" ? "desc" : "asc";
     } else {
       tableState.sortKey = key;
-      tableState.sortDir = key === "variant_id" || key === "germline_classification" ? "asc" : "desc";
+      tableState.sortDir = key === "locus" || key === "gene_name" || key === "location" ? "asc" : "desc";
     }
     refreshVariantTableBody();
+    renderDetailHeader();
   };
 
   root.addEventListener("click", root._sampleBinClick);
   root.addEventListener("click", root._sampleReportClick);
   root.addEventListener("click", root._tableSortClick);
+
+  // Load the viewport-wide variant list by default
+  loadViewportVariants();
+}
+
+export function refreshViewportVariants() {
+  loadViewportVariants();
 }

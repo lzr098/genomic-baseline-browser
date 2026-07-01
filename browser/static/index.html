@@ -4,13 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Exome Baseline Browser — GRCh38</title>
-  <link rel="stylesheet" href="/static/css/browser.css?v=14" />
+  <link rel="stylesheet" href="/static/css/browser.css?v=15" />
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
       <strong>Exome Baseline Browser</strong>
-      <span class="assembly">GRCh38 · gnomAD v4.1 exomes · ClinVar · sample HG002</span>
+      <span class="assembly">GRCh38 · gnomAD v4.1 exomes · ClinVar</span>
+      <span id="header-sample-info" class="assembly"></span>
+    </div>
+    <div class="legend-row" id="legend-row" aria-label="Track legend">
+      <span class="legend-item"><span class="legend-swatch legend-gnomad"></span>gnomAD exome density</span>
+      <span class="legend-item"><span class="legend-swatch legend-clinvar-plp"></span>ClinVar P/LP</span>
+      <span class="legend-item"><span class="legend-swatch legend-clinvar-vus"></span>ClinVar VUS / conflicting</span>
+      <span class="legend-item"><span class="legend-swatch legend-clinvar-benign"></span>ClinVar benign</span>
+      <span class="legend-item"><span class="legend-swatch legend-sample-known"></span>Sample known</span>
+      <span class="legend-item"><span class="legend-swatch legend-sample-novel"></span>Sample novel</span>
     </div>
     <div class="chrom-row" id="chrom-buttons" aria-label="Chromosome selector"></div>
     <div class="nav-row">
@@ -30,6 +39,6 @@
     <div class="loading">Loading…</div>
   </main>
 
-  <script type="module" src="/static/js/app.js?v=12"></script>
+  <script type="module" src="/static/js/app.js?v=14"></script>
 </body>
 </html>

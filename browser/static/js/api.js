@@ -36,3 +36,19 @@ export async function fetchSampleBinVariants(chrom, sampleId, binStart, binEnd, 
   }
   return res.json();
 }
+
+export async function fetchSampleViewportVariants(chrom, sampleId, start, end, limit = 500) {
+  const params = new URLSearchParams({
+    start: String(start),
+    end: String(end),
+    limit: String(limit),
+  });
+  const res = await fetch(
+    `/api/chrom/${encodeURIComponent(chrom)}/sample/${encodeURIComponent(sampleId)}/variants?${params}`
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `variants ${res.status}`);
+  }
+  return res.json();
+}

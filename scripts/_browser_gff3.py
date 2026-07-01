@@ -4,8 +4,11 @@
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
+
+import pandas as pd
 
 from _config import ALL_CHROMSOMES, gff_contig
 
@@ -135,6 +138,108 @@ def extract_genes_from_gff3(
             }
             out[chrom].append(row)
     return out
+
+
+def _location_in_transcript(
+    pos: int,
+    gene: dict[str, Any],
+    exons: list[dict[str, int]],
+) -> tuple[str, int | None]:
+    """Return (location_label, distance_to_nearest_exon_bp) for a position within a gene.
+
+    location_label examples: "exon", "intron", "5' flanking", "3' flanking".
+    """
+    strand = gene.get("strand") or "+"
+    exons_sorted = sorted(exons, key=lambda e: e["start"])
+    if not exons_sorted:
+        return "genic", None
+
+    first_exon = exons_sorted[0]
+    last_exon = exons_sorted[-1]
+
+    # Within an exon?
+    for i, ex in enumerate(exons_sorted):
+        if ex["start"] <= pos <= ex["end"]:
+            return f"exon {i + 1}", 0
+
+    # Upstream / downstream of transcript (using strand-aware labels)
+    if strand == "+":
+        if pos < first_exon["start"]:
+            return "5' flanking", first_exon["start"] - pos
+        if pos > last_exon["end"]:
+            return "3' flanking", pos - last_exon["end"]
+    else:
+        if pos < first_exon["start"]:
+            return "3' flanking", first_exon["start"] - pos
+        if pos > last_exon["end"]:
+            return "5' flanking", pos - last_exon["end"]
+
+    # In intron: find nearest exons and report distance
+    nearest_dist = None
+    for ex in exons_sorted:
+        if pos < ex["start"]:
+            nearest_dist = ex["start"] - pos
+            break
+    if nearest_dist is None:
+        nearest_dist = pos - last_exon["end"]
+
+    return "intron", nearest_dist
+
+
+@lru_cache(maxsize=24)
+def load_genes_frame(chrom: str, root_s: str) -> pd.DataFrame:
+    path = Path(root_s) / "processed" / "browser" / "genes" / f"{chrom}_genes.parquet"
+    if not path.exists():
+        return pd.DataFrame()
+    return pd.read_parquet(path)
+
+
+def gene_context_for_position(
+    chrom: str,
+    pos: int,
+    root: Path = Path("."),
+) -> dict[str, Any] | None:
+    """Return the gene/exon context for a single variant position.
+
+    If multiple genes overlap, prefer protein_coding and the smallest gene span.
+    """
+    frame = load_genes_frame(chrom, str(root))
+    if frame.empty:
+        return None
+
+    overlapping = frame[(frame["start"] <= pos) & (frame["end"] >= pos)]
+    if overlapping.empty:
+        return None
+
+    # Prefer protein_coding, then smallest span
+    def _score(row: pd.Series) -> tuple[int, int]:
+        is_coding = 1 if (row.get("biotype") or "") == "protein_coding" else 0
+        span = int(row["end"]) - int(row["start"])
+        return (is_coding, -span)
+
+    best = overlapping.iloc[0]
+    best_score = _score(best)
+    for _, row in overlapping.iterrows():
+        s = _score(row)
+        if s > best_score:
+            best = row
+            best_score = s
+
+    exons = json.loads(best["exons_json"]) if best.get("exons_json") else []
+    location, distance = _location_in_transcript(pos, best.to_dict(), exons)
+
+    return {
+        "gene_name": best.get("gene_name"),
+        "gene_id": best.get("gene_id"),
+        "transcript_id": best.get("transcript_id"),
+        "transcript_name": best.get("transcript_name"),
+        "biotype": best.get("biotype"),
+        "strand": best.get("strand"),
+        "gene_start": int(best["start"]),
+        "gene_end": int(best["end"]),
+        "location": location,
+        "distance_to_exon": distance,
+    }
 
 
 def genes_in_window(

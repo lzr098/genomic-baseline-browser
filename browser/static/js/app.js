@@ -1,4 +1,4 @@
-import { fetchChromMeta, fetchManifest, fetchViewport } from "./api.js?v=8";
+import { fetchChromMeta, fetchManifest, fetchViewport } from "./api.js?v=14";
 import {
   LABEL_WIDTH,
   centerViewport,
@@ -9,7 +9,7 @@ import {
   panScrollFromStart,
   startFromPanScroll,
 } from "./coords.js?v=8";
-import { clearSampleBinDetail, setupSampleBinDetail } from "./sample-detail.js?v=12";
+import { clearSampleBinDetail, setupSampleBinDetail, refreshViewportVariants } from "./sample-detail.js?v=14";
 import { renderBrowserPanel, renderTracksSection, setupBinTooltips, updateIdeogramFromViewport, updatePanelSubtitle } from "./tracks.js?v=10";
 import { setupIdeogramDrag } from "./ideogram.js?v=8";
 
@@ -39,6 +39,7 @@ const els = {
   zoomOut: document.getElementById("zoom-out"),
   windowBp: document.getElementById("window-bp"),
   status: document.getElementById("status"),
+  headerSampleInfo: document.getElementById("header-sample-info"),
 };
 
 function setStatus(text, isError = false) {
@@ -48,6 +49,16 @@ function setStatus(text, isError = false) {
 
 function updateLocationInput() {
   els.locationInput.value = `${state.chrom}:${state.start.toLocaleString("en-US")}-${state.end.toLocaleString("en-US")}`;
+}
+
+function updateHeaderSampleInfo() {
+  if (!els.headerSampleInfo) return;
+  const sampleId = state.sampleId || (state.manifest?.default_sample ?? null);
+  if (sampleId) {
+    els.headerSampleInfo.textContent = ` · sample ${sampleId}`;
+  } else {
+    els.headerSampleInfo.textContent = "";
+  }
 }
 
 function updateWindowBpLabel() {
@@ -282,6 +293,7 @@ function sampleDetailContext() {
   return {
     getChrom: () => state.chrom,
     getSampleId: () => state.sampleId,
+    getViewport: () => ({ start: state.start, end: state.end }),
   };
 }
 
@@ -401,6 +413,7 @@ async function init() {
   try {
     state.manifest = await fetchManifest();
     state.sampleId = state.manifest.default_sample || null;
+    updateHeaderSampleInfo();
     const defaultChrom = state.manifest.default_chrom || "chr21";
     await loadChrom(defaultChrom);
     await refreshViewport();

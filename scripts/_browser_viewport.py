@@ -355,6 +355,31 @@ class BrowserDataStore:
             limit=limit,
         )
 
+    def sample_viewport_variants(
+        self,
+        chrom: str,
+        sample_id: str,
+        start: int,
+        end: int,
+        *,
+        limit: int = 500,
+    ) -> dict[str, Any]:
+        from _browser_sample import load_sample_viewport_variants
+
+        self.chrom_meta(chrom)
+        start_i = int(start)
+        end_i = int(end)
+        if start_i > end_i:
+            raise ValueError("start must be <= end")
+        return load_sample_viewport_variants(
+            sample_id,
+            chrom,
+            start_i,
+            end_i,
+            self.root,
+            limit=limit,
+        )
+
     def chrom_info(self, chrom: str) -> dict[str, Any]:
         meta = self.chrom_meta(chrom)
         manifest = self.manifest()
